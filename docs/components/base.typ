@@ -215,23 +215,36 @@
     .join()
 }
 
-// Displays a deprecation info, if any.
-#let deprecation(info) = {
+// Displays binding information, if any, such as:
+// - A deprecation
+// - A feature gate
+#let definition-info(info) = {
   if info == none { return }
 
-  let body = {
-    text-with-code(info.message)
-    if info.until != none {
-      [; it will be removed in Typst #info.until]
+  let item(size, name, alt, body) = {
+    context if target() == "paged" {
+      small(icon(size, name, alt) + [ ] + body)
+    } else {
+      html.small(class: "definition-info", {
+        html.div(use-icon(size, name, alt))
+        html.span(body)
+      })
     }
   }
 
-  context if target() == "paged" {
-    small(icon(16, "warn", "Warning") + [ ] + body)
-  } else {
-    html.small(class: "deprecation", {
-      html.div(use-icon(16, "warn", "Warning"))
-      html.span(body)
+  if info.feature != none {
+    // TODO: Add feature gate icon.
+    item(16, "warn", "Feature", {
+      raw(info.feature)
+    })
+  }
+
+  if info.deprecation != none {
+    item(16, "warn", "Warning", {
+      text-with-code(info.deprecation.message)
+      if info.deprecation.until != none {
+        [; it will be removed in Typst #info.deprecation.until]
+      }
     })
   }
 }
